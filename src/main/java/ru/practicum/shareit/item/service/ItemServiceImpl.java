@@ -52,7 +52,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto getById(Long itemId) {
+    public ItemDto getById(Long userId, Long itemId) {
+        findUserById(userId);
         return ItemMapper.toItemDto(findItemById(itemId));
     }
 
@@ -65,7 +66,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> search(String text) {
+    public List<ItemDto> search(Long userId, String text) {
+        findUserById(userId);
         return itemRepository.search(text).stream()
                 .map(ItemMapper::toItemDto)
                 .toList();
