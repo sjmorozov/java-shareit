@@ -16,10 +16,6 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public Item save(Item item) {
-        if (item == null) {
-            throw new IllegalArgumentException("Вещь не должна быть null");
-        }
-
         if (item.getId() == null) {
             item.setId(currentId++);
         }

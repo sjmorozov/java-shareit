@@ -19,12 +19,11 @@ public final class ItemMapper {
     }
 
     public static Item toItem(ItemDto itemDto, User owner) {
-        return new Item(
-                itemDto.getId(),
-                itemDto.getName(),
-                itemDto.getDescription(),
-                itemDto.getAvailable(),
-                owner
-        );
+        Item item = new Item();
+        item.setName(itemDto.getName());
+        item.setDescription(itemDto.getDescription());
+        item.setAvailable(itemDto.getAvailable());
+        item.setOwner(owner);
+        return item;
     }
 }

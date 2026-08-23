@@ -20,17 +20,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto create(Long userId, ItemDto itemDto) {
-        validateItemDto(itemDto);
         User owner = findUserById(userId);
 
         Item item = ItemMapper.toItem(itemDto, owner);
-        item.setId(null);
         return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override
     public ItemDto update(Long userId, Long itemId, ItemDto itemDto) {
-        validateItemDto(itemDto);
         User owner = findUserById(userId);
         Item item = findItemById(itemId);
 
@@ -74,10 +71,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private User findUserById(Long userId) {
-        if (userId == null) {
-            throw new IllegalArgumentException("id пользователя не должен быть null");
-        }
-
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Пользователя с id = " + userId + " не существует"
@@ -85,19 +78,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private Item findItemById(Long itemId) {
-        if (itemId == null) {
-            throw new IllegalArgumentException("id вещи не должен быть null");
-        }
-
         return itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException(
                         "Вещи с id = " + itemId + " не существует"
                 ));
-    }
-
-    private void validateItemDto(ItemDto itemDto) {
-        if (itemDto == null) {
-            throw new IllegalArgumentException("Данные вещи не должны быть null");
-        }
     }
 }

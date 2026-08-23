@@ -74,10 +74,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private User findUserById(Long userId) {
-        if (userId == null) {
-            throw new IllegalArgumentException("id пользователя не должен быть null");
-        }
-
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(
                         "Пользователя с id = " + userId + " не существует"

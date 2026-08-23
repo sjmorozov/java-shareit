@@ -17,25 +17,17 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User save(User user) {
-
-        if (user == null) {
-            log.info("Пользователь должен быть передан в метод");
-            throw new IllegalArgumentException("Пользователь не должен быть null");
-
-        } else {
-            Long id = user.getId();
-            if (id != null) {
-                users.put(id, user);
-                log.info("Пользователь с id = {} обновлён", id);
-                return user;
-            } else {
-                user.setId(currentId);
-                users.put(currentId, user);
-                log.info("Пользователь с id = {} сохранён", user.getId());
-                currentId++;
-            }
+        Long id = user.getId();
+        if (id != null) {
+            users.put(id, user);
+            log.info("Пользователь с id = {} обновлён", id);
+            return user;
         }
 
+        user.setId(currentId);
+        users.put(currentId, user);
+        log.info("Пользователь с id = {} сохранён", user.getId());
+        currentId++;
         return user;
     }
 
