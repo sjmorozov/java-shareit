@@ -5,4 +5,6 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 
 public interface BookingService {
     BookingDto create(Long userId, BookingCreateDto bookingCreateDto);
+
+    BookingDto updateStatus(Long userId, Long bookingId, boolean approved);
 }

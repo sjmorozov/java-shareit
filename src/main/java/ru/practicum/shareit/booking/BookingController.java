@@ -2,10 +2,13 @@ package ru.practicum.shareit.booking;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -23,5 +26,12 @@ public class BookingController {
     public BookingDto create(@RequestHeader(USER_ID_HEADER) Long userId,
                              @Valid @RequestBody BookingCreateDto bookingCreateDto) {
         return bookingService.create(userId, bookingCreateDto);
+    }
+
+    @PatchMapping("/{bookingId}")
+    public BookingDto updateStatus(@RequestHeader(USER_ID_HEADER) Long userId,
+                                   @PathVariable Long bookingId,
+                                   @RequestParam boolean approved) {
+        return bookingService.updateStatus(userId, bookingId, approved);
     }
 }

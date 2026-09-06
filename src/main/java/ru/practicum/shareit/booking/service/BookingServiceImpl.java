@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -42,6 +43,28 @@ public class BookingServiceImpl implements BookingService {
         }
 
         Booking booking = BookingMapper.toBooking(bookingCreateDto, item, booker);
+        return BookingMapper.toBookingDto(bookingRepository.save(booking));
+    }
+
+    @Override
+    @Transactional
+    public BookingDto updateStatus(Long userId, Long bookingId, boolean approved) {
+        findUserById(userId);
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException(
+                        "Бронирования с id = " + bookingId + " не существует"
+                ));
+
+        if (!booking.getItem().getOwner().getId().equals(userId)) {
+            throw new NotFoundException("Изменить статус бронирования может только владелец вещи");
+        }
+
+        if (booking.getStatus() != BookingStatus.WAITING) {
+            throw new IllegalArgumentException("Статус бронирования уже был изменён");
+        }
+
+        booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         return BookingMapper.toBookingDto(bookingRepository.save(booking));
     }
 
