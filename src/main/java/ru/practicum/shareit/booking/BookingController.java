@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,5 +34,11 @@ public class BookingController {
                                    @PathVariable Long bookingId,
                                    @RequestParam boolean approved) {
         return bookingService.updateStatus(userId, bookingId, approved);
+    }
+
+    @GetMapping("/{bookingId}")
+    public BookingDto getById(@RequestHeader(USER_ID_HEADER) Long userId,
+                              @PathVariable Long bookingId) {
+        return bookingService.getById(userId, bookingId);
     }
 }
