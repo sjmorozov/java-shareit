@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.validation.OnCreate;
 
 @AllArgsConstructor
@@ -26,4 +27,7 @@ public class ItemDto {
 
     @NotNull(groups = OnCreate.class, message = "Статус доступности вещи должен быть указан")
     private Boolean available;
+
+    private BookingShortDto lastBooking;
+    private BookingShortDto nextBooking;
 }
