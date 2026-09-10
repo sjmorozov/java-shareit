@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingState;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -16,6 +17,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -87,6 +89,54 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return BookingMapper.toBookingDto(booking);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BookingDto> getAllByBooker(Long userId, BookingState state) {
+        findUserById(userId);
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Booking> bookings = switch (state) {
+            case ALL -> bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
+            case CURRENT -> bookingRepository
+                    .findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now);
+            case PAST -> bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now);
+            case FUTURE -> bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, now);
+            case WAITING -> bookingRepository
+                    .findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
+            case REJECTED -> bookingRepository
+                    .findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
+        };
+
+        return toBookingDtoList(bookings);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BookingDto> getAllByOwner(Long userId, BookingState state) {
+        findUserById(userId);
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Booking> bookings = switch (state) {
+            case ALL -> bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId);
+            case CURRENT -> bookingRepository
+                    .findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now);
+            case PAST -> bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now);
+            case FUTURE -> bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now);
+            case WAITING -> bookingRepository
+                    .findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
+            case REJECTED -> bookingRepository
+                    .findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
+        };
+
+        return toBookingDtoList(bookings);
+    }
+
+    private List<BookingDto> toBookingDtoList(List<Booking> bookings) {
+        return bookings.stream()
+                .map(BookingMapper::toBookingDto)
+                .toList();
     }
 
     private User findUserById(Long userId) {

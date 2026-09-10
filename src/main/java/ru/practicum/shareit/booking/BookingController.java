@@ -15,6 +15,8 @@ import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/bookings")
 @RequiredArgsConstructor
@@ -40,5 +42,19 @@ public class BookingController {
     public BookingDto getById(@RequestHeader(USER_ID_HEADER) Long userId,
                               @PathVariable Long bookingId) {
         return bookingService.getById(userId, bookingId);
+    }
+
+    @GetMapping
+    public List<BookingDto> getAllByBooker(
+            @RequestHeader(USER_ID_HEADER) Long userId,
+            @RequestParam(defaultValue = "ALL") String state) {
+        return bookingService.getAllByBooker(userId, BookingState.from(state));
+    }
+
+    @GetMapping("/owner")
+    public List<BookingDto> getAllByOwner(
+            @RequestHeader(USER_ID_HEADER) Long userId,
+            @RequestParam(defaultValue = "ALL") String state) {
+        return bookingService.getAllByOwner(userId, BookingState.from(state));
     }
 }
