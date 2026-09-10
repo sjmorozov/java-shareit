@@ -10,6 +10,7 @@ import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -51,15 +52,13 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto updateStatus(Long userId, Long bookingId, boolean approved) {
-        findUserById(userId);
-
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException(
                         "Бронирования с id = " + bookingId + " не существует"
                 ));
 
         if (!booking.getItem().getOwner().getId().equals(userId)) {
-            throw new NotFoundException("Изменить статус бронирования может только владелец вещи");
+            throw new ForbiddenException("Изменить статус бронирования может только владелец вещи");
         }
 
         if (booking.getStatus() != BookingStatus.WAITING) {
