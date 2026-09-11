@@ -45,6 +45,19 @@ public class BookingServiceImpl implements BookingService {
             throw new NotFoundException("Владелец вещи не может забронировать её у самого себя");
         }
 
+        boolean hasOverlappingBooking = bookingRepository
+                .existsByItemIdAndStatusInAndStartBeforeAndEndAfter(
+                        item.getId(),
+                        List.of(BookingStatus.WAITING, BookingStatus.APPROVED),
+                        bookingCreateDto.getEnd(),
+                        bookingCreateDto.getStart()
+                );
+        if (hasOverlappingBooking) {
+            throw new IllegalArgumentException(
+                    "Вещь с id = " + item.getId() + " уже забронирована на выбранное время"
+            );
+        }
+
         Booking booking = BookingMapper.toBooking(bookingCreateDto, item, booker);
         return BookingMapper.toBookingDto(bookingRepository.save(booking));
     }
@@ -167,9 +180,6 @@ public class BookingServiceImpl implements BookingService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        if (!start.isAfter(now)) {
-            throw new IllegalArgumentException("Дата начала бронирования должна быть в будущем");
-        }
         if (!end.isAfter(now)) {
             throw new IllegalArgumentException("Дата окончания бронирования должна быть в будущем");
         }
