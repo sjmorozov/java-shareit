@@ -21,6 +21,16 @@ public class ErrorHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ProblemDetail handleForbiddenException(ForbiddenException exception) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                exception.getMessage()
+        );
+        problemDetail.setTitle("Access denied");
+        return problemDetail;
+    }
+
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ProblemDetail handleEmailAlreadyExistsException(EmailAlreadyExistsException exception) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
