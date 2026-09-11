@@ -166,23 +166,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void validateBookingCreateDto(BookingCreateDto bookingCreateDto) {
-        if (bookingCreateDto == null) {
-            throw new IllegalArgumentException("Данные бронирования не должны быть null");
-        }
-        if (bookingCreateDto.getItemId() == null) {
-            throw new IllegalArgumentException("Идентификатор вещи должен быть указан");
-        }
-
         LocalDateTime start = bookingCreateDto.getStart();
         LocalDateTime end = bookingCreateDto.getEnd();
-        if (start == null || end == null) {
-            throw new IllegalArgumentException("Даты начала и окончания бронирования должны быть указаны");
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        if (!end.isAfter(now)) {
-            throw new IllegalArgumentException("Дата окончания бронирования должна быть в будущем");
-        }
         if (!start.isBefore(end)) {
             throw new IllegalArgumentException(
                     "Дата начала бронирования должна быть раньше даты окончания"
