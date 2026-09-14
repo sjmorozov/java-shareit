@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,27 +14,30 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.shareit.user.User;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "items")
+@Table(name = "comments")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class Item {
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 2000)
+    private String text;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "item_id", nullable = false)
+    private Item item;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
+
     @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false, length = 512)
-    private String description;
-
-    @Column(nullable = false)
-    private Boolean available;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private User owner;
+    private LocalDateTime created;
 }
