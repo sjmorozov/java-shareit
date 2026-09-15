@@ -6,18 +6,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.practicum.shareit.exception.ErrorHandler;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
-import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -29,52 +29,36 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
     @Mock
-    private UserClient userClient;
+    private UserService userService;
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userClient))
+        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userService))
                 .setControllerAdvice(new ErrorHandler())
                 .build();
     }
 
     @Test
-    void createShouldForwardValidUserToClient() throws Exception {
-        when(userClient.create(argThat(user -> "user@example.com".equals(user.getEmail()))))
-                .thenReturn(ResponseEntity.ok(Map.of(
-                        "id", 1,
-                        "name", "User",
-                        "email", "user@example.com"
-                )));
+    void createShouldDelegateToService() throws Exception {
+        when(userService.create(any(UserDto.class)))
+                .thenReturn(userDto(1L, "User", "user@example.com"));
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"User\",\"email\":\"user@example.com\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.email").value("user@example.com"));
+                .andExpect(jsonPath("$.id").value(1));
 
-        verify(userClient).create(argThat(user ->
+        verify(userService).create(argThat(user ->
                 "User".equals(user.getName()) && "user@example.com".equals(user.getEmail())));
     }
 
     @Test
-    void createShouldRejectInvalidEmailBeforeCallingClient() throws Exception {
-        mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"User\",\"email\":\"not-an-email\"}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors.email").exists());
-
-        verifyNoInteractions(userClient);
-    }
-
-    @Test
-    void updateShouldForwardValidPartialUser() throws Exception {
-        when(userClient.update(eq(1L), argThat(user -> "Updated".equals(user.getName()))))
-                .thenReturn(ResponseEntity.ok(Map.of("id", 1, "name", "Updated")));
+    void updateShouldDelegateToService() throws Exception {
+        when(userService.update(eq(1L), any(UserDto.class)))
+                .thenReturn(userDto(1L, "Updated", "user@example.com"));
 
         mockMvc.perform(patch("/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -82,38 +66,40 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Updated"));
 
-        verify(userClient).update(eq(1L), argThat(user -> "Updated".equals(user.getName())));
+        verify(userService).update(eq(1L), argThat(user -> "Updated".equals(user.getName())));
     }
 
     @Test
-    void getByIdShouldForwardUserId() throws Exception {
-        when(userClient.getById(1L)).thenReturn(ResponseEntity.ok(Map.of("id", 1)));
+    void getByIdShouldDelegateToService() throws Exception {
+        when(userService.getById(1L)).thenReturn(userDto(1L, "User", "user@example.com"));
 
         mockMvc.perform(get("/users/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1));
+                .andExpect(jsonPath("$.email").value("user@example.com"));
 
-        verify(userClient).getById(1L);
+        verify(userService).getById(1L);
     }
 
     @Test
-    void getAllShouldCallClient() throws Exception {
-        when(userClient.getAll()).thenReturn(ResponseEntity.ok(List.of(Map.of("id", 1))));
+    void getAllShouldDelegateToService() throws Exception {
+        when(userService.getAll()).thenReturn(List.of(userDto(1L, "User", "user@example.com")));
 
         mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1));
 
-        verify(userClient).getAll();
+        verify(userService).getAll();
     }
 
     @Test
-    void deleteShouldForwardUserId() throws Exception {
-        when(userClient.delete(1L)).thenReturn(ResponseEntity.ok().build());
-
+    void deleteShouldDelegateToService() throws Exception {
         mockMvc.perform(delete("/users/1"))
                 .andExpect(status().isOk());
 
-        verify(userClient).delete(1L);
+        verify(userService).delete(1L);
+    }
+
+    private UserDto userDto(Long id, String name, String email) {
+        return new UserDto(id, name, email);
     }
 }

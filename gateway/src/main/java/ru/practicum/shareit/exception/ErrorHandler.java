@@ -23,6 +23,7 @@ public class ErrorHandler {
                 "Запрос содержит некорректные данные"
         );
         problemDetail.setTitle("Validation failed");
+        problemDetail.setProperty("error", problemDetail.getDetail());
         problemDetail.setProperty("errors", errors);
         return problemDetail;
     }
@@ -34,6 +35,7 @@ public class ErrorHandler {
                 exception.getMessage()
         );
         problemDetail.setTitle("Invalid request");
+        problemDetail.setProperty("error", problemDetail.getDetail());
         return problemDetail;
     }
 }

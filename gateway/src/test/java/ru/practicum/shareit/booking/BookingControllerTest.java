@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -99,5 +100,43 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.detail").value("Unknown state: SOMETHING"));
 
         verifyNoInteractions(bookingClient);
+    }
+
+    @Test
+    void updateStatusShouldForwardApproval() throws Exception {
+        when(bookingClient.updateStatus(2L, 1L, true))
+                .thenReturn(ResponseEntity.ok(Map.of("id", 1, "status", "APPROVED")));
+
+        mockMvc.perform(patch("/bookings/1")
+                        .header(USER_ID_HEADER, 2)
+                        .param("approved", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("APPROVED"));
+
+        verify(bookingClient).updateStatus(2L, 1L, true);
+    }
+
+    @Test
+    void getByIdShouldForwardUserAndBookingIds() throws Exception {
+        when(bookingClient.getById(2L, 1L)).thenReturn(ResponseEntity.ok(Map.of("id", 1)));
+
+        mockMvc.perform(get("/bookings/1").header(USER_ID_HEADER, 2))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
+
+        verify(bookingClient).getById(2L, 1L);
+    }
+
+    @Test
+    void getAllByOwnerShouldForwardParsedState() throws Exception {
+        when(bookingClient.getAllByOwner(2L, BookingState.WAITING))
+                .thenReturn(ResponseEntity.ok(List.of()));
+
+        mockMvc.perform(get("/bookings/owner")
+                        .header(USER_ID_HEADER, 2)
+                        .param("state", "waiting"))
+                .andExpect(status().isOk());
+
+        verify(bookingClient).getAllByOwner(2L, BookingState.WAITING);
     }
 }

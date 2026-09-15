@@ -8,6 +8,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -112,6 +114,15 @@ class ItemRequestServiceIntegrationTest {
             assertThat(responseItem.getName()).isEqualTo("Drill");
             assertThat(responseItem.getOwnerId()).isEqualTo(responder.getId());
         });
+    }
+
+    @Test
+    void getOwnShouldReturnEmptyListAndGetByIdShouldRejectMissingRequest() {
+        assertThat(requestService.getOwn(requester.getId())).isEmpty();
+        assertThatThrownBy(() -> requestService.getById(requester.getId(), Long.MAX_VALUE))
+                .isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> requestService.getAll(Long.MAX_VALUE))
+                .isInstanceOf(NotFoundException.class);
     }
 
     private ItemRequest saveRequest(User user, String description, LocalDateTime created) {
