@@ -14,6 +14,14 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query("""
             SELECT i
             FROM Item i
+            JOIN FETCH i.owner
+            WHERE i.request.id IN :requestIds
+            """)
+    List<Item> findAllByRequestIdIn(@Param("requestIds") List<Long> requestIds);
+
+    @Query("""
+            SELECT i
+            FROM Item i
             WHERE i.available = true
             AND (
             LOWER(i.name) LIKE LOWER(CONCAT('%', :text, '%'))

@@ -26,4 +26,6 @@ public class ItemDto {
 
     @NotNull(groups = OnCreate.class, message = "Статус доступности вещи должен быть указан")
     private Boolean available;
+
+    private Long requestId;
 }
