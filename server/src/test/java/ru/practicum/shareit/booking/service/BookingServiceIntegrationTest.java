@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.service;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,13 +12,10 @@ import ru.practicum.shareit.booking.BookingState;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,13 +31,7 @@ class BookingServiceIntegrationTest {
     private BookingService bookingService;
 
     @Autowired
-    private BookingRepository bookingRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ItemRepository itemRepository;
+    private EntityManager entityManager;
 
     private User owner;
     private User booker;
@@ -47,14 +39,14 @@ class BookingServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        owner = userRepository.save(new User(null, "Owner", "owner@example.com"));
-        booker = userRepository.save(new User(null, "Booker", "booker@example.com"));
+        owner = persist(new User(null, "Owner", "owner@example.com"));
+        booker = persist(new User(null, "Booker", "booker@example.com"));
         item = new Item();
         item.setName("Drill");
         item.setDescription("Cordless drill");
         item.setAvailable(true);
         item.setOwner(owner);
-        item = itemRepository.save(item);
+        item = persist(item);
     }
 
     @Test
@@ -66,7 +58,7 @@ class BookingServiceIntegrationTest {
 
         assertThat(created.getId()).isNotNull();
         assertThat(created.getStatus()).isEqualTo(BookingStatus.WAITING);
-        assertThat(bookingRepository.findById(created.getId())).isPresent();
+        assertThat(findBooking(created.getId())).isNotNull();
     }
 
     @Test
@@ -80,7 +72,7 @@ class BookingServiceIntegrationTest {
         BookingDto updated = bookingService.updateStatus(owner.getId(), booking.getId(), true);
 
         assertThat(updated.getStatus()).isEqualTo(BookingStatus.APPROVED);
-        assertThat(bookingRepository.findById(booking.getId()).orElseThrow().getStatus())
+        assertThat(findBooking(booking.getId()).getStatus())
                 .isEqualTo(BookingStatus.APPROVED);
     }
 
@@ -139,7 +131,7 @@ class BookingServiceIntegrationTest {
     @Test
     void createShouldRejectUnavailableItem() {
         item.setAvailable(false);
-        itemRepository.save(item);
+        entityManager.flush();
         LocalDateTime start = LocalDateTime.now().plusDays(1);
 
         assertThatThrownBy(() -> bookingService.create(
@@ -222,7 +214,7 @@ class BookingServiceIntegrationTest {
                 LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2)
         );
-        User outsider = userRepository.save(new User(null, "Outsider", "outsider@example.com"));
+        User outsider = persist(new User(null, "Outsider", "outsider@example.com"));
 
         assertThat(bookingService.getById(owner.getId(), booking.getId()).getId())
                 .isEqualTo(booking.getId());
@@ -248,6 +240,17 @@ class BookingServiceIntegrationTest {
     }
 
     private Booking saveBooking(BookingStatus status, LocalDateTime start, LocalDateTime end) {
-        return bookingRepository.save(new Booking(null, start, end, item, booker, status));
+        return persist(new Booking(null, start, end, item, booker, status));
+    }
+
+    private Booking findBooking(Long bookingId) {
+        entityManager.flush();
+        entityManager.clear();
+        return entityManager.find(Booking.class, bookingId);
+    }
+
+    private <T> T persist(T entity) {
+        entityManager.persist(entity);
+        return entity;
     }
 }
