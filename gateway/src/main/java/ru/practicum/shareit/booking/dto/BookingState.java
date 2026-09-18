@@ -12,9 +12,6 @@ public enum BookingState {
     REJECTED;
 
     public static Optional<BookingState> from(String value) {
-        if (value == null) {
-            return Optional.empty();
-        }
         try {
             return Optional.of(valueOf(value.toUpperCase(Locale.ROOT)));
         } catch (IllegalArgumentException exception) {
